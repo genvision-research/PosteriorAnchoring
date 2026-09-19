@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="Uncertainty-Calibrated Posterior Anchoring with Group-Relative Refinement for Linear Inverse Problems."
+  />
+  <title>Posterior Anchoring with Group-Relative Refinement</title>
+  <link rel="stylesheet" href="style.css?v=5" />
+</head>
+
+<body>
+  <main>
+    <!-- =========================================================
+         Navigation
+    ========================================================== -->
+    <nav class="project-nav" aria-label="Project sections">
+      <div class="project-nav-inner">
+        <a href="#abstract">Abstract</a>
+        <a href="#method">Methodology</a>
+        <a href="#results">Qualitative Results</a>
+        <a href="#analysis">Quantitative Results</a>
+        <a href="#ablation">Ablation Studies</a>
+        <a href="#bibtex">BibTeX</a>
+      </div>
+    </nav>
+
+    <!-- =========================================================
+         Hero
+    ========================================================== -->
+    <header class="hero section section--reading">
+      <h1>
+        <span class="method-name">
+          Uncertainty-Calibrated Posterior Anchoring with Group-Relative Refinement for Linear Inverse Problems
+        </span>
+      </h1>
+
+      <div class="authors">
+        <a href="#">Anonymous Authors</a>
+      </div>
+
+      <div class="link-row">
+        <a class="paper-link" href="#">📄 Paper</a>
+        <a class="paper-link" href="#">⌘ Code</a>
+        <a class="paper-link" href="assets/supp/supp.pdf" target="_blank" rel="noopener noreferrer">⌁ Supplementary Material</a>
+        <a class="paper-link" href="#bibtex">❞ BibTeX</a>
+      </div>
+    </header>
+
+    <!-- =========================================================
+         Abstract
+    ========================================================== -->
+    <section class="section section--reading prose-section" id="abstract">
+      <h2>Abstract</h2>
+      <p>
+        Diffusion models provide strong priors for inverse problems, but many training-free solvers mainly treat the intermediate Tweedie clean prediction as a point estimate, leaving its spatial reliability underused. In addition, measurement consistency alone is often insufficient to resolve ambiguities introduced by information-losing operators. To solve this problem, we propose a training-free framework that uses diffusion uncertainty for two complementary roles: observation conditioning and adaptive refinement. At each reverse step, we estimate a spatial uncertainty map from second-order Tweedie information using Hutchinson-JVP. Together with the Tweedie mean, this uncertainty defines a local Gaussian belief over the clean image, which yields an uncertainty-calibrated posterior anchor under a linear Gaussian measurement model. The anchor adapts observation correction according to the reliability of the current diffusion prediction. Starting from this anchor, we then apply uncertainty-aware group-relative refinement. The same uncertainty controls the exploration scale, while a reward combining measurement fidelity and no-reference image quality determines which sampled variations are favored. The group-relative refinement requires no reward-gradient backpropagation through either the denoiser or the reward model, while all pretrained models remain frozen during inference. Experiments on Gaussian deblurring and super-resolution show that the proposed method improves perceptual reconstruction quality, maintains competitive FID, and reduces memory consumption compared with most guidance-based baselines.
+      </p>
+    </section>
+
+    <!-- =========================================================
+         Methodology
+    ========================================================== -->
+    <section class="section section--wide" id="method">
+      <h2>Methodology</h2>
+
+      <figure class="wide-figure">
+        <img src="assets/figures/pipeline.webp" alt="Overall Pipeline Architecture" />
+        <figcaption>
+          <strong>Overall Framework.</strong>
+          At each reverse step, the pretrained diffusion model estimates the Tweedie clean prediction and its spatial uncertainty. The uncertainty is first used to construct an observation-conditioned posterior anchor, and then reused to control candidate exploration in uncertainty-aware group-relative refinement. The refined prediction is finally used for the DDIM reverse update.
+        </figcaption>
+      </figure>
+
+      <div class="component-grid">
+        <article class="component-card">
+          <div class="component-index">1</div>
+          <h3>Diffusion Prediction &amp; Uncertainty</h3>
+          <p>
+            Estimates the Tweedie clean prediction together with spatial uncertainty from second-order diffusion information, capturing the reliability of different image regions during reverse diffusion.
+          </p>
+        </article>
+
+        <article class="component-card">
+          <div class="component-index">2</div>
+          <h3>Uncertainty-Calibrated Posterior Anchoring</h3>
+          <p>
+            Combines the Tweedie prediction, spatial uncertainty, and observation through Gaussian conditioning to construct a measurement-informed anchor with uncertainty-adaptive correction.
+          </p>
+        </article>
+
+        <article class="component-card">
+          <div class="component-index">3</div>
+          <h3>Group-Relative Refinement</h3>
+          <p>
+            Explores candidate variations around the posterior anchor using uncertainty-adaptive sampling and group-relative rewards, refining ambiguous regions without backpropagation through the denoiser or reward model.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         Qualitative Results
+    ========================================================== -->
+    <section class="section section--wide" id="results">
+      <h2>Qualitative Visualization</h2>
+
+      <p class="section-copy">
+        Visual comparisons with representative training-free baselines across two inverse imaging tasks.
+      </p>
+
+      <figure class="wide-figure result-figure">
+        <img
+          src="assets/figures/super_qualitative.webp"
+          alt="Qualitative comparison on super-resolution"
+        />
+        <figcaption>
+          <strong>Qualitative comparison on super-resolution.</strong>
+          Our method recovers perceptually faithful details while preserving the underlying image structure, with fewer visible artifacts than competing training-free guidance methods.
+        </figcaption>
+      </figure>
+
+      <figure class="wide-figure result-figure">
+        <img
+          src="assets/figures/gaussian_qualitative.webp"
+          alt="Qualitative comparison on Gaussian deblurring"
+        />
+        <figcaption>
+          <strong>Qualitative comparison on Gaussian deblurring.</strong>
+          Our method produces sharp and coherent reconstructions while effectively suppressing blur-induced artifacts and preserving fine structural details.
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- =========================================================
+         Quantitative Analysis
+    ========================================================== -->
+    <section class="section section--wide" id="analysis">
+      <h2>Quantitative &amp; Trade-off Analysis</h2>
+
+      <p class="analysis-intro">
+        We evaluate reconstruction quality and computational efficiency on <strong>Super-Resolution</strong> and <strong>Gaussian Deblurring</strong>. Lower values are better for all reported metrics.
+      </p>
+
+      <div class="quant-grid">
+        <!-- Super-Resolution -->
+        <article class="analysis-card quantitative-card">
+          <h3>Super-Resolution</h3>
+
+          <div class="table-wrap">
+            <table class="quant-table">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>FID ↓</th>
+                  <th>LPIPS ↓</th>
+                  <th>Time/sample (s) ↓</th>
+                  <th>Peak Mem. (GB) ↓</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>DPS</td>
+                  <td>121.422 ± 1.519</td>
+                  <td>42.149 ± 0.313</td>
+                  <td>5.092 ± 0.024</td>
+                  <td>2.513 ± 0.002</td>
+                </tr>
+                <tr>
+                  <td>LGD</td>
+                  <td>111.665 ± 0.617</td>
+                  <td>37.429 ± 0.283</td>
+                  <td>5.045 ± 0.010</td>
+                  <td>2.526 ± 0.002</td>
+                </tr>
+                <tr>
+                  <td>FreeDoM</td>
+                  <td>70.127 ± 1.533</td>
+                  <td>19.535 ± 0.395</td>
+                  <td>3.856 ± 0.009</td>
+                  <td>2.511 ± 0.001</td>
+                </tr>
+                <tr>
+                  <td>MPGD</td>
+                  <td>89.452 ± 1.122</td>
+                  <td>28.362 ± 0.337</td>
+                  <td><strong>1.406 ± 0.007</strong></td>
+                  <td><strong>0.786 ± 0.001</strong></td>
+                </tr>
+                <tr>
+                  <td>UGD</td>
+                  <td>87.487 ± 0.751</td>
+                  <td>27.380 ± 0.150</td>
+                  <td>4.483 ± 0.062</td>
+                  <td>2.511 ± 0.002</td>
+                </tr>
+                <tr>
+                  <td>TFG</td>
+                  <td><strong>63.171 ± 1.312</strong></td>
+                  <td><u>18.766 ± 0.245</u></td>
+                  <td><u>3.677 ± 0.025</u></td>
+                  <td>2.510 ± 0.001</td>
+                </tr>
+                <tr class="ours-row">
+                  <td><strong>Ours</strong></td>
+                  <td><u>63.397 ± 0.746</u></td>
+                  <td><strong>16.394 ± 0.132</strong></td>
+                  <td>8.972 ± 0.086</td>
+                  <td><u>1.073 ± 0.001</u></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- Gaussian Deblurring -->
+        <article class="analysis-card quantitative-card">
+          <h3>Gaussian Deblurring</h3>
+
+          <div class="table-wrap">
+            <table class="quant-table">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>FID ↓</th>
+                  <th>LPIPS ↓</th>
+                  <th>Time/sample (s) ↓</th>
+                  <th>Peak Mem. (GB) ↓</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>DPS</td>
+                  <td>112.578 ± 1.438</td>
+                  <td>39.214 ± 0.130</td>
+                  <td>5.257 ± 0.027</td>
+                  <td>2.512 ± 0.002</td>
+                </tr>
+                <tr>
+                  <td>LGD</td>
+                  <td>91.040 ± 0.291</td>
+                  <td>27.487 ± 0.206</td>
+                  <td>6.509 ± 0.001</td>
+                  <td>2.526 ± 0.002</td>
+                </tr>
+                <tr>
+                  <td>FreeDoM</td>
+                  <td>85.245 ± 0.828</td>
+                  <td>23.948 ± 0.731</td>
+                  <td>3.998 ± 0.004</td>
+                  <td>2.513 ± 0.001</td>
+                </tr>
+                <tr>
+                  <td>MPGD</td>
+                  <td>65.907 ± 0.909</td>
+                  <td>17.948 ± 0.113</td>
+                  <td><strong>1.457 ± 0.002</strong></td>
+                  <td><strong>0.786 ± 0.002</strong></td>
+                </tr>
+                <tr>
+                  <td>UGD</td>
+                  <td>67.281 ± 0.949</td>
+                  <td>20.565 ± 0.027</td>
+                  <td>4.596 ± 0.012</td>
+                  <td>2.512 ± 0.002</td>
+                </tr>
+                <tr>
+                  <td>TFG</td>
+                  <td><strong>59.398 ± 0.462</strong></td>
+                  <td><strong>15.324 ± 0.082</strong></td>
+                  <td><u>3.712 ± 0.014</u></td>
+                  <td>2.513 ± 0.002</td>
+                </tr>
+                <tr class="ours-row">
+                  <td><strong>Ours</strong></td>
+                  <td><u>64.473 ± 0.460</u></td>
+                  <td><u>15.927 ± 0.172</u></td>
+                  <td>9.477 ± 0.086</td>
+                  <td><u>1.221 ± 0.002</u></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+
+      <div class="pareto-block">
+        <h3>Quality–Efficiency Trade-off</h3>
+        <p>
+          Our method provides a favorable trade-off between reconstruction quality and memory efficiency, achieving strong perceptual quality while substantially reducing peak GPU memory usage.
+        </p>
+        <div class="pareto-image-wrap">
+          <img
+            src="assets/figures/pareto_main.webp"
+            alt="Quality-Efficiency Pareto Frontier"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         Ablation Studies
+    ========================================================== -->
+    <section class="section section--wide" id="ablation">
+      <h2>Ablation Studies</h2>
+
+      <div class="ablation-stack">
+        <!-- Core components -->
+        <article class="analysis-card ablation-card">
+          <h3>Ablation on Core Components</h3>
+
+          <p class="ablation-intro">
+            We progressively introduce the proposed components to assess their contributions: <strong>A0</strong> is the base model, <strong>A1</strong> applies scalar guidance, <strong>A2</strong> introduces uncertainty-aware guidance, and <strong>A3</strong> further incorporates group-relative refinement.
+          </p>
+
+          <div class="analysis-image-wrap ablation-main-figure">
+            <img
+              src="assets/figures/ab_component.webp"
+              alt="Component-wise ablation from A0 to A3"
+            />
+          </div>
+
+          <p class="ablation-caption">
+            <strong>Component-wise ablation.</strong>
+            Quantitative FID and LPIPS results are shown together with qualitative reconstructions. The red boxes highlight regions with noticeable reconstruction differences across the progressive variants.
+          </p>
+        </article>
+
+        <!-- Additional ablation -->
+        <article class="analysis-card ablation-card">
+          <h3>Additional Ablation Analysis</h3>
+
+          <p class="ablation-intro">
+            We further examine the effects of different inference configurations,
+  including the active guidance window, group size <em>N</em>, and the number of inner
+  refinement steps <em>J</em>, using FID and LPIPS to assess reconstruction quality.
+          </p>
+
+          <div class="ablation-two-figures">
+            <div class="analysis-image-wrap">
+              <img
+                src="assets/figures/ab_fid.webp"
+                alt="FID ablation analysis"
+              />
+            </div>
+
+            <div class="analysis-image-wrap">
+              <img
+                src="assets/figures/ab_lpips.webp"
+                alt="LPIPS ablation analysis"
+              />
+            </div>
+          </div>
+
+          <p class="ablation-caption">
+            <strong>Quantitative ablation.</strong>
+            FID and LPIPS are reported under different configurations to examine their effects on reconstruction quality.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         BibTeX
+    ========================================================== -->
+    <section class="section section--reading" id="bibtex">
+      <h2>BibTeX</h2>
+      <pre><code>@article{posterioranchoring2026,
+  title  = {Uncertainty-Calibrated Posterior Anchoring with Group-Relative Refinement for Linear Inverse Problems},
+  author = {Anonymous},
+  year   = {2026}
+}</code></pre>
+    </section>
+
+    <footer>
+      <p>This project page presents supplementary and additional visuals for our method.</p>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      const navLinks = [...document.querySelectorAll('.project-nav a[href^="#"]')];
+      const sections = navLinks
+        .map(link => document.querySelector(link.getAttribute('href')))
+        .filter(Boolean);
+
+      if (!navLinks.length || !sections.length) return;
+
+      const setActive = (id) => {
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+        });
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (visible.length) setActive(visible[0].target.id);
+      }, {
+        rootMargin: '-20% 0px -65% 0px',
+        threshold: 0
+      });
+
+      sections.forEach(section => observer.observe(section));
+
+      navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          setActive(link.getAttribute('href').slice(1));
+        });
+      });
+
+      setActive(sections[0].id);
+    })();
+  </script>
+</body>
+</html>
