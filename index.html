@@ -55,7 +55,7 @@
     <section class="section section--reading prose-section" id="abstract">
       <h2>Abstract</h2>
       <p>
-        Diffusion models provide strong priors for inverse problems, but many training-free solvers mainly treat the intermediate Tweedie clean prediction as a point estimate, leaving its spatial reliability underused. In addition, measurement consistency alone is often insufficient to resolve ambiguities introduced by information-losing operators. To solve this problem, we propose a training-free framework that uses diffusion uncertainty for two complementary roles: observation conditioning and adaptive refinement. At each reverse step, we estimate a spatial uncertainty map from second-order Tweedie information using Hutchinson-JVP. Together with the Tweedie mean, this uncertainty defines a local Gaussian belief over the clean image, which yields an uncertainty-calibrated posterior anchor under a linear Gaussian measurement model. The anchor adapts observation correction according to the reliability of the current diffusion prediction. Starting from this anchor, we then apply uncertainty-aware group-relative refinement. The same uncertainty controls the exploration scale, while a reward combining measurement fidelity and no-reference image quality determines which sampled variations are favored. The group-relative refinement requires no reward-gradient backpropagation through either the denoiser or the reward model, while all pretrained models remain frozen during inference. Experiments on Gaussian deblurring and super-resolution show that the proposed method improves perceptual reconstruction quality, maintains competitive FID, and reduces memory consumption compared with most guidance-based baselines.
+      Diffusion models provide strong priors for inverse problems, yet many training-free solvers treat the intermediate Tweedie clean prediction primarily as a point estimate, leaving its spatial reliability underexploited. Furthermore, measurement fidelity alone may be insufficient to resolve ambiguities introduced by information-losing operators. To address these limitations, we propose a training-free framework that uses diffusion uncertainty for two complementary purposes: observation conditioning and adaptive refinement. At each reverse step, we estimate spatial uncertainty from second-order Tweedie information using Hutchinson-JVP. Together with the Tweedie mean, this defines a local Gaussian belief from which we derive an uncertainty-calibrated posterior anchor. The anchor adapts observation correction to the reliability of the current prediction. Starting from this anchor, we perform uncertainty-aware group-relative refinement in a low-dimensional search space, where the same uncertainty controls exploration and a reward combining measurement fidelity and no-reference image quality favors better samples. The refinement requires no reward-gradient backpropagation, and all pretrained models remain frozen. Experiments on Gaussian deblurring and super-resolution achieve the best FID and LPIPS among the compared training-free baselines. On super-resolution, our method improves FID and LPIPS by 9.6% and 16.1%, respectively, over the strongest competing baseline, while on Gaussian deblurring the corresponding improvements are 2.2% and 11.3%. It also requires substantially less peak memory than most guidance-based methods.  
       </p>
     </section>
 
@@ -155,7 +155,6 @@
                   <th>Method</th>
                   <th>FID ↓</th>
                   <th>LPIPS ↓</th>
-                  <th>Time/sample (s) ↓</th>
                   <th>Peak Mem. (GB) ↓</th>
                 </tr>
               </thead>
@@ -164,49 +163,36 @@
                   <td>DPS</td>
                   <td>121.422 ± 1.519</td>
                   <td>42.149 ± 0.313</td>
-                  <td>5.092 ± 0.024</td>
                   <td>2.513 ± 0.002</td>
                 </tr>
                 <tr>
                   <td>LGD</td>
                   <td>111.665 ± 0.617</td>
                   <td>37.429 ± 0.283</td>
-                  <td>5.045 ± 0.010</td>
                   <td>2.526 ± 0.002</td>
                 </tr>
                 <tr>
                   <td>FreeDoM</td>
-                  <td>70.127 ± 1.533</td>
-                  <td>19.535 ± 0.395</td>
-                  <td>3.856 ± 0.009</td>
+                  <td><u>70.127 ± 1.533</u></td>
+                  <td><u>19.535 ± 0.395</u></td>
                   <td>2.511 ± 0.001</td>
                 </tr>
                 <tr>
                   <td>MPGD</td>
                   <td>89.452 ± 1.122</td>
                   <td>28.362 ± 0.337</td>
-                  <td><strong>1.406 ± 0.007</strong></td>
                   <td><strong>0.786 ± 0.001</strong></td>
                 </tr>
                 <tr>
                   <td>UGD</td>
                   <td>87.487 ± 0.751</td>
                   <td>27.380 ± 0.150</td>
-                  <td>4.483 ± 0.062</td>
                   <td>2.511 ± 0.002</td>
-                </tr>
-                <tr>
-                  <td>TFG</td>
-                  <td><strong>63.171 ± 1.312</strong></td>
-                  <td><u>18.766 ± 0.245</u></td>
-                  <td><u>3.677 ± 0.025</u></td>
-                  <td>2.510 ± 0.001</td>
                 </tr>
                 <tr class="ours-row">
                   <td><strong>Ours</strong></td>
-                  <td><u>63.397 ± 0.746</u></td>
+                  <td><strong>63.397 ± 0.746</strong></td>
                   <td><strong>16.394 ± 0.132</strong></td>
-                  <td>8.972 ± 0.086</td>
                   <td><u>1.073 ± 0.001</u></td>
                 </tr>
               </tbody>
@@ -225,7 +211,6 @@
                   <th>Method</th>
                   <th>FID ↓</th>
                   <th>LPIPS ↓</th>
-                  <th>Time/sample (s) ↓</th>
                   <th>Peak Mem. (GB) ↓</th>
                 </tr>
               </thead>
@@ -234,49 +219,36 @@
                   <td>DPS</td>
                   <td>112.578 ± 1.438</td>
                   <td>39.214 ± 0.130</td>
-                  <td>5.257 ± 0.027</td>
                   <td>2.512 ± 0.002</td>
                 </tr>
                 <tr>
                   <td>LGD</td>
                   <td>91.040 ± 0.291</td>
                   <td>27.487 ± 0.206</td>
-                  <td>6.509 ± 0.001</td>
                   <td>2.526 ± 0.002</td>
                 </tr>
                 <tr>
                   <td>FreeDoM</td>
                   <td>85.245 ± 0.828</td>
                   <td>23.948 ± 0.731</td>
-                  <td>3.998 ± 0.004</td>
                   <td>2.513 ± 0.001</td>
                 </tr>
                 <tr>
                   <td>MPGD</td>
-                  <td>65.907 ± 0.909</td>
-                  <td>17.948 ± 0.113</td>
-                  <td><strong>1.457 ± 0.002</strong></td>
+                  <td><u>65.907 ± 0.909</u></td>
+                  <td><u>17.948 ± 0.113</u></td>
                   <td><strong>0.786 ± 0.002</strong></td>
                 </tr>
                 <tr>
                   <td>UGD</td>
                   <td>67.281 ± 0.949</td>
                   <td>20.565 ± 0.027</td>
-                  <td>4.596 ± 0.012</td>
                   <td>2.512 ± 0.002</td>
-                </tr>
-                <tr>
-                  <td>TFG</td>
-                  <td><strong>59.398 ± 0.462</strong></td>
-                  <td><strong>15.324 ± 0.082</strong></td>
-                  <td><u>3.712 ± 0.014</u></td>
-                  <td>2.513 ± 0.002</td>
                 </tr>
                 <tr class="ours-row">
                   <td><strong>Ours</strong></td>
-                  <td><u>64.473 ± 0.460</u></td>
-                  <td><u>15.927 ± 0.172</u></td>
-                  <td>9.477 ± 0.086</td>
+                  <td><strong>64.473 ± 0.460</strong></td>
+                  <td><strong>15.927 ± 0.172</strong></td>
                   <td><u>1.221 ± 0.002</u></td>
                 </tr>
               </tbody>
@@ -286,10 +258,10 @@
       </div>
 
       <div class="pareto-block">
-        <h3>Quality–Efficiency Trade-off</h3>
-        <p>
-          Our method provides a favorable trade-off between reconstruction quality and memory efficiency, achieving strong perceptual quality while substantially reducing peak GPU memory usage.
-        </p>
+        <h3>Quality–Memory Trade-off</h3>
+          <p>
+            Our method achieves strong reconstruction quality while requiring substantially less peak GPU memory than most guidance-based baselines.
+          </p>
         <div class="pareto-image-wrap">
           <img
             src="assets/figures/pareto_main.webp"
